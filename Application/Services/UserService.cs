@@ -1,0 +1,145 @@
+using Application.DTOs.RequestDTOs.User;
+using Application.DTOs.ResponseDTOs.User;
+using Application.Interfaces.IServices;
+using Application.Interfaces.IUnitOfWork;
+using AutoMapper;
+using Domain.Entities;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+
+namespace Application.Services;
+
+public class UserService : IUserService
+{
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly IMapper _mapper;
+    private readonly IWebHostEnvironment _env;
+
+    public UserService(IUnitOfWork unitOfWork, IMapper mapper, IWebHostEnvironment env)
+    {
+        _unitOfWork = unitOfWork;
+        _mapper = mapper;
+        _env = env;
+    }
+
+    public async Task<IEnumerable<UserResponse>> GetAllAsync()
+    {
+        var users = await _unitOfWork.UserRepository.GetAllAsync();
+        return _mapper.Map<IEnumerable<UserResponse>>(users);
+    }
+
+    public async Task<UserResponse> GetByIdAsync(Guid id)
+    {
+        var user = await _unitOfWork.UserRepository.GetByIdAsync(id)
+            ?? throw new Exception("User not found.");
+
+        return _mapper.Map<UserResponse>(user);
+    }
+
+    public async Task<UserResponse> UpdateAsync(Guid id, UpdateUserRequest request)
+    {
+        var user = await _unitOfWork.UserRepository.GetByIdAsync(id)
+            ?? throw new Exception("User not found.");
+
+        user.FullName = request.FullName;
+        user.PhoneNumber = request.PhoneNumber;
+
+        if (request.Avatar != null && request.Avatar.Length > 0)
+        {
+            user.AvatarUrl = await SaveAvatarFileAsync(request.Avatar);
+        }
+
+        await _unitOfWork.UserRepository.UpdateAsync(user);
+        await _unitOfWork.SaveChangesAsync();
+
+        return _mapper.Map<UserResponse>(user);
+    }
+
+    public async Task DeleteAsync(Guid id)
+    {
+        var user = await _unitOfWork.UserRepository.GetByIdAsync(id)
+            ?? throw new Exception("User not found.");
+
+        await _unitOfWork.UserRepository.DeleteAsync(id);
+        await _unitOfWork.SaveChangesAsync();
+    }
+
+    public async Task ChangePasswordAsync(Guid id, ChangePasswordRequest request)
+    {
+        var user = await _unitOfWork.UserRepository.GetByIdAsync(id)
+            ?? throw new Exception("User not found.");
+
+        if (!BCrypt.Net.BCrypt.Verify(request.OldPassword, user.PasswordHash))
+            throw new Exception("Old password is incorrect.");
+
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+
+        await _unitOfWork.UserRepository.UpdateAsync(user);
+        await _unitOfWork.SaveChangesAsync();
+    }
+
+    public async Task<string> UploadAvatarAsync(Guid id, IFormFile file)
+    {
+        var user = await _unitOfWork.UserRepository.GetByIdAsync(id)
+            ?? throw new Exception("User not found.");
+
+        if (file == null || file.Length == 0)
+            throw new Exception("Invalid image file.");
+
+        user.AvatarUrl = await SaveAvatarFileAsync(file);
+
+        await _unitOfWork.UserRepository.UpdateAsync(user);
+        await _unitOfWork.SaveChangesAsync();
+
+        return user.AvatarUrl;
+    }
+
+    public async Task<UserResponse> CreateAsync(CreateUserRequest request)
+    {
+        if (await _unitOfWork.UserRepository.GetByEmailAsync(request.Email) != null)
+            throw new Exception("This email is already in use.");
+
+        var user = new User
+        {
+            Id = Guid.NewGuid(),
+            Email = request.Email,
+            FullName = request.FullName,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
+            PhoneNumber = request.PhoneNumber,
+            Role = request.Role,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        if (request.Avatar != null && request.Avatar.Length > 0)
+        {
+            user.AvatarUrl = await SaveAvatarFileAsync(request.Avatar);
+        }
+
+        await _unitOfWork.UserRepository.AddAsync(user);
+        await _unitOfWork.SaveChangesAsync();
+
+        return _mapper.Map<UserResponse>(user);
+    }
+
+    // ── helpers ───────────────────────────────────────────────────────────────
+
+    private async Task<string> SaveAvatarFileAsync(IFormFile file)
+    {
+        var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+        var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+        if (!allowedExtensions.Contains(ext))
+            throw new Exception("Only image files are accepted: jpg, jpeg, png, gif, webp.");
+
+        var uploadFolder = Path.Combine(_env.WebRootPath ?? "wwwroot", "avatars");
+        Directory.CreateDirectory(uploadFolder);
+
+        var fileName = $"{Guid.NewGuid()}{ext}";
+        var filePath = Path.Combine(uploadFolder, fileName);
+
+        using var stream = new FileStream(filePath, FileMode.Create);
+        await file.CopyToAsync(stream);
+
+        return $"/avatars/{fileName}";
+    }
+}
