@@ -12,6 +12,10 @@ public class UnitOfWork : IUnitOfWork
     private IDbContextTransaction? _transaction;
     private bool _disposed;
     private IUserRepository? _users;
+    private ICategoryRepository? _categories;
+    private IServiceRepository? _services;
+    private IProductRepository? _products;
+    private IProductImageRepository? _productImages;
 
     public UnitOfWork(BadmintonBooking_PRM393Context context)
     {
@@ -19,6 +23,10 @@ public class UnitOfWork : IUnitOfWork
     }
 
     public IUserRepository UserRepository => _users ??= new UserRepository(_context);
+    public ICategoryRepository CategoryRepository => _categories ??= new CategoryRepository(_context);
+    public IServiceRepository ServiceRepository => _services ??= new ServiceRepository(_context);
+    public IProductRepository ProductRepository => _products ??= new ProductRepository(_context);
+    public IProductImageRepository ProductImageRepository => _productImages ??= new ProductImageRepository(_context);
 
     public async Task<int> SaveChangesAsync()
     {

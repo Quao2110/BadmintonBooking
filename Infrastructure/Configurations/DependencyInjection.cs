@@ -34,6 +34,10 @@ namespace Infrastructure.Configurations
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IFileService, FileService>();
+            services.AddScoped<ICategoryService, CategoryService>();
+            services.AddScoped<IServiceService, ServiceService>();
+            services.AddScoped<IProductService, ProductService>();
+            services.AddScoped<IProductImageService, ProductImageService>();
 
             // 4. Cấu hình AutoMapper (Gom luôn vào đây cho Program.cs đỡ chật)
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
