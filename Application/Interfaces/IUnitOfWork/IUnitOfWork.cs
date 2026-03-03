@@ -9,6 +9,9 @@ public interface IUnitOfWork : IDisposable
     IServiceRepository ServiceRepository { get; }
     IProductRepository ProductRepository { get; }
     IProductImageRepository ProductImageRepository { get; }
+    ICourtRepository CourtRepository { get; }
+    ICourtImageRepository CourtImageRepository { get; }
+    IShopRepository ShopRepository { get; }
     Task<int> SaveChangesAsync();
     Task CommitAsync();
 }

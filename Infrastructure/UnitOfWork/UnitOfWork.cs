@@ -16,6 +16,9 @@ public class UnitOfWork : IUnitOfWork
     private IServiceRepository? _services;
     private IProductRepository? _products;
     private IProductImageRepository? _productImages;
+    private ICourtRepository? _courts;
+    private ICourtImageRepository? _courtImages;
+    private IShopRepository? _shops;
 
     public UnitOfWork(BadmintonBooking_PRM393Context context)
     {
@@ -27,6 +30,9 @@ public class UnitOfWork : IUnitOfWork
     public IServiceRepository ServiceRepository => _services ??= new ServiceRepository(_context);
     public IProductRepository ProductRepository => _products ??= new ProductRepository(_context);
     public IProductImageRepository ProductImageRepository => _productImages ??= new ProductImageRepository(_context);
+    public ICourtRepository CourtRepository => _courts ??= new CourtRepository(_context);
+    public ICourtImageRepository CourtImageRepository => _courtImages ??= new CourtImageRepository(_context);
+    public IShopRepository ShopRepository => _shops ??= new ShopRepository(_context);
 
     public async Task<int> SaveChangesAsync()
     {
