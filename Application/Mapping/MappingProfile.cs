@@ -6,6 +6,7 @@ using Application.DTOs.ResponseDTOs.Service;
 using Application.DTOs.ResponseDTOs.Court;
 using Application.DTOs.ResponseDTOs.CourtImage;
 using Application.DTOs.ResponseDTOs.Shop;
+using Application.DTOs.ResponseDTOs.Notification;
 using AutoMapper;
 using Domain.Entities;
 
@@ -28,6 +29,7 @@ namespace Application.Mapping
             CreateMap<Shop, ShopResponse>()
                 .ForMember(dest => dest.ImageUrls,
                     opt => opt.MapFrom(src => src.ShopImages.Select(si => si.ImageUrl).ToList()));
+            CreateMap<Notification, NotificationResponse>();
         }
     }
 }
