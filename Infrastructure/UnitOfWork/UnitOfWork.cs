@@ -19,6 +19,7 @@ public class UnitOfWork : IUnitOfWork
     private ICourtRepository? _courts;
     private ICourtImageRepository? _courtImages;
     private IShopRepository? _shops;
+    private INotificationRepository? _notifications;
 
     public UnitOfWork(BadmintonBooking_PRM393Context context)
     {
@@ -33,6 +34,7 @@ public class UnitOfWork : IUnitOfWork
     public ICourtRepository CourtRepository => _courts ??= new CourtRepository(_context);
     public ICourtImageRepository CourtImageRepository => _courtImages ??= new CourtImageRepository(_context);
     public IShopRepository ShopRepository => _shops ??= new ShopRepository(_context);
+    public INotificationRepository NotificationRepository => _notifications ??= new NotificationRepository(_context);
 
     public async Task<int> SaveChangesAsync()
     {
