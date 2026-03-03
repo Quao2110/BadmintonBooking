@@ -3,6 +3,10 @@ using Application.DTOs.ResponseDTOs.Category;
 using Application.DTOs.ResponseDTOs.Product;
 using Application.DTOs.ResponseDTOs.ProductImage;
 using Application.DTOs.ResponseDTOs.Service;
+using Application.DTOs.ResponseDTOs.Court;
+using Application.DTOs.ResponseDTOs.CourtImage;
+using Application.DTOs.ResponseDTOs.Shop;
+using Application.DTOs.ResponseDTOs.Notification;
 using AutoMapper;
 using Domain.Entities;
 
@@ -19,6 +23,13 @@ namespace Application.Mapping
             CreateMap<Product, ProductResponse>()
                 .ForMember(dest => dest.CategoryName,
                     opt => opt.MapFrom(src => src.Category != null ? src.Category.CategoryName : null));
+
+            CreateMap<Court, CourtResponse>();
+            CreateMap<CourtImage, CourtImageResponse>();
+            CreateMap<Shop, ShopResponse>()
+                .ForMember(dest => dest.ImageUrls,
+                    opt => opt.MapFrom(src => src.ShopImages.Select(si => si.ImageUrl).ToList()));
+            CreateMap<Notification, NotificationResponse>();
         }
     }
 }
