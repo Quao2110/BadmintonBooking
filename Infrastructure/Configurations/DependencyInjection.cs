@@ -46,6 +46,9 @@ namespace Infrastructure.Configurations
             services.AddScoped<IShopService, ShopService>();
             services.AddScoped<INotificationService, NotificationService>();
             services.AddScoped<IBookingService, BookingService>();
+            // AI service for auto-replies
+            services.AddScoped<IAiService, AiService>();
+            services.Configure<AiOptions>(configuration.GetSection("AiOptions"));
 
             // 4. C?u hình AutoMapper (Gom luôn vào dây cho Program.cs d? ch?t)
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
