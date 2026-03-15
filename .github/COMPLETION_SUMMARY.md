@@ -2,7 +2,7 @@
 
 ## 📊 Tổng Quan
 
-Implementation hoàn thành toàn bộ **Task 5.1 (Cart Management)** và **Task 5.2 (Checkout Logic)** + **Task 5.3 (Order Management)** theo yêu cầu từ `task_5.md`.
+Implementation hoàn thành toàn bộ **Task 5.1 (Cart Management)**, **Task 5.2 (Checkout Logic)**, **Task 5.3 (Order Management)** và **Task 5.4 (Payment Integration - VNPAY)** theo yêu cầu từ `task_5.md`.
 
 ---
 
@@ -10,21 +10,22 @@ Implementation hoàn thành toàn bộ **Task 5.1 (Cart Management)** và **Task
 
 ### ✅ Task 5.1: API Quản lý Giỏ hàng (CartItems)
 
-| Item | Status | File |
-|------|--------|------|
-| AddToCartRequest DTO | ✅ | `Application/DTOs/RequestDTOs/Cart/AddToCartRequest.cs` |
-| UpdateCartItemRequest DTO | ✅ | `Application/DTOs/RequestDTOs/Cart/UpdateCartItemRequest.cs` |
-| CartItemResponse DTO | ✅ | `Application/DTOs/ResponseDTOs/Cart/CartItemResponse.cs` |
-| CartResponse DTO | ✅ | `Application/DTOs/ResponseDTOs/Cart/CartResponse.cs` |
-| ICartRepository Interface | ✅ | `Application/Interfaces/IRepositories/ICartRepository.cs` |
-| ICartItemRepository Interface | ✅ | `Application/Interfaces/IRepositories/ICartItemRepository.cs` |
-| CartRepository Implementation | ✅ | `Infrastructure/Repositories/CartRepository.cs` |
-| CartItemRepository Implementation | ✅ | `Infrastructure/Repositories/CartItemRepository.cs` |
-| ICartService Interface | ✅ | `Application/Interfaces/IServices/ICartService.cs` |
-| CartService Implementation | ✅ | `Application/Services/CartService.cs` |
-| CartController | ✅ | `WebAPI/Controllers/CartController.cs` |
+| Item                              | Status | File                                                          |
+| --------------------------------- | ------ | ------------------------------------------------------------- |
+| AddToCartRequest DTO              | ✅     | `Application/DTOs/RequestDTOs/Cart/AddToCartRequest.cs`       |
+| UpdateCartItemRequest DTO         | ✅     | `Application/DTOs/RequestDTOs/Cart/UpdateCartItemRequest.cs`  |
+| CartItemResponse DTO              | ✅     | `Application/DTOs/ResponseDTOs/Cart/CartItemResponse.cs`      |
+| CartResponse DTO                  | ✅     | `Application/DTOs/ResponseDTOs/Cart/CartResponse.cs`          |
+| ICartRepository Interface         | ✅     | `Application/Interfaces/IRepositories/ICartRepository.cs`     |
+| ICartItemRepository Interface     | ✅     | `Application/Interfaces/IRepositories/ICartItemRepository.cs` |
+| CartRepository Implementation     | ✅     | `Infrastructure/Repositories/CartRepository.cs`               |
+| CartItemRepository Implementation | ✅     | `Infrastructure/Repositories/CartItemRepository.cs`           |
+| ICartService Interface            | ✅     | `Application/Interfaces/IServices/ICartService.cs`            |
+| CartService Implementation        | ✅     | `Application/Services/CartService.cs`                         |
+| CartController                    | ✅     | `WebAPI/Controllers/CartController.cs`                        |
 
 **API Endpoints:**
+
 - `GET /api/cart` - Lấy giỏ hàng
 - `POST /api/cart/add` - Thêm sản phẩm
 - `PUT /api/cart/item/{id}` - Cập nhật số lượng
@@ -35,20 +36,21 @@ Implementation hoàn thành toàn bộ **Task 5.1 (Cart Management)** và **Task
 
 ### ✅ Task 5.2: API Checkout (Xử lý Transaction & Tồn kho)
 
-| Item | Status | File |
-|------|--------|------|
-| CheckoutRequest DTO | ✅ | `Application/DTOs/RequestDTOs/Order/CheckoutRequest.cs` |
-| OrderDetailResponse DTO | ✅ | `Application/DTOs/ResponseDTOs/Order/OrderDetailResponse.cs` |
-| OrderResponse DTO | ✅ | `Application/DTOs/ResponseDTOs/Order/OrderResponse.cs` |
-| IOrderRepository Interface | ✅ | `Application/Interfaces/IRepositories/IOrderRepository.cs` |
-| IOrderDetailRepository Interface | ✅ | `Application/Interfaces/IRepositories/IOrderDetailRepository.cs` |
-| OrderRepository Implementation | ✅ | `Infrastructure/Repositories/OrderRepository.cs` |
-| OrderDetailRepository Implementation | ✅ | `Infrastructure/Repositories/OrderDetailRepository.cs` |
-| IOrderService Interface | ✅ | `Application/Interfaces/IServices/IOrderService.cs` |
-| OrderService Implementation | ✅ | `Application/Services/OrderService.cs` |
-| OrderController | ✅ | `WebAPI/Controllers/OrderController.cs` |
+| Item                                 | Status | File                                                             |
+| ------------------------------------ | ------ | ---------------------------------------------------------------- |
+| CheckoutRequest DTO                  | ✅     | `Application/DTOs/RequestDTOs/Order/CheckoutRequest.cs`          |
+| OrderDetailResponse DTO              | ✅     | `Application/DTOs/ResponseDTOs/Order/OrderDetailResponse.cs`     |
+| OrderResponse DTO                    | ✅     | `Application/DTOs/ResponseDTOs/Order/OrderResponse.cs`           |
+| IOrderRepository Interface           | ✅     | `Application/Interfaces/IRepositories/IOrderRepository.cs`       |
+| IOrderDetailRepository Interface     | ✅     | `Application/Interfaces/IRepositories/IOrderDetailRepository.cs` |
+| OrderRepository Implementation       | ✅     | `Infrastructure/Repositories/OrderRepository.cs`                 |
+| OrderDetailRepository Implementation | ✅     | `Infrastructure/Repositories/OrderDetailRepository.cs`           |
+| IOrderService Interface              | ✅     | `Application/Interfaces/IServices/IOrderService.cs`              |
+| OrderService Implementation          | ✅     | `Application/Services/OrderService.cs`                           |
+| OrderController                      | ✅     | `WebAPI/Controllers/OrderController.cs`                          |
 
 **Checkout Logic (✅ Transaction Safety):**
+
 1. ✅ Validate cart & address
 2. ✅ Stock validation (kiểm tra tồn kho)
 3. ✅ Create Order record
@@ -58,20 +60,22 @@ Implementation hoàn thành toàn bộ **Task 5.1 (Cart Management)** và **Task
 7. ✅ COMMIT/ROLLBACK handling
 
 **API Endpoint:**
+
 - `POST /api/orders/checkout` - Chốt đơn (Transaction)
 
 ---
 
 ### ✅ Task 5.3: API Lịch sử đơn hàng & Quản trị trạng thái
 
-| Item | Status | File |
-|------|--------|------|
-| UpdateOrderStatusRequest DTO | ✅ | `Application/DTOs/RequestDTOs/Order/UpdateOrderStatusRequest.cs` |
-| Order query methods | ✅ | `OrderService.cs` + `OrderRepository.cs` |
-| Order status update logic | ✅ | `OrderService.cs` (UpdateOrderStatusAsync) |
-| Cancel order with restock | ✅ | `OrderService.cs` (CancelOrderAsync) |
+| Item                         | Status | File                                                             |
+| ---------------------------- | ------ | ---------------------------------------------------------------- |
+| UpdateOrderStatusRequest DTO | ✅     | `Application/DTOs/RequestDTOs/Order/UpdateOrderStatusRequest.cs` |
+| Order query methods          | ✅     | `OrderService.cs` + `OrderRepository.cs`                         |
+| Order status update logic    | ✅     | `OrderService.cs` (UpdateOrderStatusAsync)                       |
+| Cancel order with restock    | ✅     | `OrderService.cs` (CancelOrderAsync)                             |
 
 **API Endpoints:**
+
 - `GET /api/orders/{id}` - Lấy chi tiết đơn hàng
 - `GET /api/orders/my-orders` - Lấy đơn hàng cá nhân
 - `GET /api/orders` - Phân trang (admin)
@@ -80,16 +84,30 @@ Implementation hoàn thành toàn bộ **Task 5.1 (Cart Management)** và **Task
 
 ---
 
-### ⏳ Task 5.4: Tích hợp Thanh toán Online
+### ✅ Task 5.4: Tích hợp Thanh toán Online (VNPAY)
 
-| Item | Status | File |
-|------|--------|------|
-| Payment Service Interface | ⏳ | To be implemented |
-| VNPAY Integration | ⏳ | To be implemented |
-| Webhook Handler | ⏳ | To be implemented |
-| Payment Status Update | ⏳ | To be implemented |
+| Item                          | Status | File                                                                   |
+| ----------------------------- | ------ | ---------------------------------------------------------------------- |
+| Payment Service Interface     | ✅     | `Application/Interfaces/IServices/IPaymentService.cs`                  |
+| VNPAY Payment Service         | ✅     | `Application/Services/PaymentService.cs`                               |
+| Create Payment URL DTO        | ✅     | `Application/DTOs/RequestDTOs/Payment/CreateVnPayPaymentUrlRequest.cs` |
+| Payment Response DTOs         | ✅     | `Application/DTOs/ResponseDTOs/Payment/*`                              |
+| VNPAY Signature + URL Builder | ✅     | `Domain/Const/VnPay.cs`                                                |
+| Payment Controller            | ✅     | `WebAPI/Controllers/PaymentController.cs`                              |
+| DI Registration               | ✅     | `Infrastructure/Configurations/DependencyInjection.cs`                 |
 
-*Sẽ implement trong phase tiếp theo*
+**API Endpoints:**
+
+- `POST /api/payments/vnpay/create-link` - Tạo URL thanh toán VNPAY cho đơn hàng (Auth required).
+- `GET /api/payments/vnpay/ipn` - Endpoint IPN/Webhook từ VNPAY (AllowAnonymous, verify chữ ký, cập nhật `PaymentStatus`).
+- `GET /api/payments/vnpay/return` - Nhận callback sau thanh toán và trả kết quả chuẩn hóa về FE.
+
+**Payment Flow (VNPAY):**
+
+1. User checkout tạo đơn với `PaymentMethod = VNPAY`.
+2. FE gọi API tạo payment link và mở URL VNPAY.
+3. VNPAY gọi `ipn` về BE để xác thực chữ ký và cập nhật trạng thái đơn (`Paid`/`Failed`).
+4. VNPAY redirect `return` về BE để FE nhận `VNPayResultResponse` hiển thị kết quả giao dịch.
 
 ---
 
@@ -108,6 +126,7 @@ Request
 ```
 
 ### Flow Example: Checkout
+
 ```
 OrderController.Checkout()
   ↓
@@ -128,6 +147,7 @@ OrderService.CheckoutAsync()
 ## 📁 File Structure
 
 ### DTOs (12 files)
+
 ```
 RequestDTOs/
 ├── Cart/
@@ -148,6 +168,7 @@ ResponseDTOs/
 ```
 
 ### Interfaces (8 files)
+
 ```
 Interfaces/
 ├── IRepositories/
@@ -161,6 +182,7 @@ Interfaces/
 ```
 
 ### Implementations (8 files)
+
 ```
 Services/
 ├── CartService.cs
@@ -178,6 +200,7 @@ Controllers/
 ```
 
 ### Configuration (2 files)
+
 ```
 Mapping/
 └── MappingProfile.cs (updated)
@@ -192,17 +215,20 @@ UnitOfWork/
 ## 🔐 Security Features
 
 ✅ **Authorization**
+
 - All endpoints protected with `[Authorize]`
 - JWT token validation
 - User ID extraction from claims
 
 ✅ **Validation**
+
 - Input validation (DTO validation)
 - Stock availability checks
 - Delivery address validation
 - Quantity > 0 validation
 
 ✅ **Data Consistency**
+
 - Database transaction (ACID compliance)
 - Atomicity - all or nothing
 - Isolation - concurrent request safety
@@ -210,6 +236,7 @@ UnitOfWork/
 - Durability - persistent changes
 
 ✅ **Error Handling**
+
 - Meaningful error messages
 - Appropriate HTTP status codes
 - Exception logging
@@ -219,6 +246,7 @@ UnitOfWork/
 ## 🧪 Test Scenarios
 
 ### ✅ Happy Path
+
 1. User adds product to cart → Cart updated
 2. User checkout → Order created, stock reduced, cart cleared
 3. User views order → Order details returned
@@ -226,6 +254,7 @@ UnitOfWork/
 5. User cancels order → Stock restored
 
 ### ✅ Error Cases
+
 1. Add to cart with insufficient stock → Error
 2. Checkout with empty cart → Error
 3. Checkout with unavailable address → Error
@@ -237,6 +266,7 @@ UnitOfWork/
 ## 📊 Database Changes
 
 ### Tables Updated
+
 - ✅ `Carts` - Shopping cart per user
 - ✅ `CartItems` - Items in cart
 - ✅ `Orders` - Customer orders
@@ -244,6 +274,7 @@ UnitOfWork/
 - ✅ `Products` - StockQuantity updated
 
 ### Relationships
+
 ```
 User
  ├─ Cart (1:1)
@@ -259,14 +290,17 @@ User
 ## 📈 Performance Optimizations
 
 ✅ **Eager Loading**
+
 - Use `.Include()` to load related entities
 - Prevents N+1 query problem
 
 ✅ **Paging**
+
 - Support paging for order list
 - Reduce data transfer
 
 ✅ **Indexes (Recommended)**
+
 ```sql
 CREATE INDEX idx_Orders_UserId ON Orders(UserId);
 CREATE INDEX idx_CartItems_CartId ON CartItems(CartId);
@@ -337,6 +371,7 @@ CREATE INDEX idx_Products_StockQuantity ON Products(StockQuantity);
 ## ✨ Key Features
 
 ### 🛒 Cart Management
+
 - [x] Get cart
 - [x] Add product (with quantity merge)
 - [x] Update quantity
@@ -345,6 +380,7 @@ CREATE INDEX idx_Products_StockQuantity ON Products(StockQuantity);
 - [x] Stock validation
 
 ### 📦 Order Management
+
 - [x] Checkout (atomic transaction)
 - [x] Create order with details
 - [x] Stock reduction
@@ -354,7 +390,16 @@ CREATE INDEX idx_Products_StockQuantity ON Products(StockQuantity);
 - [x] Update order status
 - [x] Cancel order (with restock)
 
+### 💳 Payment Integration
+
+- [x] Create VNPAY payment URL
+- [x] Verify VNPAY secure hash
+- [x] Handle VNPAY IPN/Webhook
+- [x] Update order payment status (Paid/Failed)
+- [x] Return payment result payload for FE
+
 ### 🔄 Transaction Safety
+
 - [x] ACID compliance
 - [x] Rollback on error
 - [x] Race condition prevention
@@ -365,7 +410,8 @@ CREATE INDEX idx_Products_StockQuantity ON Products(StockQuantity);
 ## 🚀 Ready for Integration
 
 The implementation is:
-- ✅ Complete for Tasks 5.1, 5.2, 5.3
+
+- ✅ Complete for Tasks 5.1, 5.2, 5.3, 5.4 (VNPAY)
 - ✅ Production-ready
 - ✅ Well-documented
 - ✅ Follows coding standards
@@ -390,6 +436,5 @@ The implementation is:
 ---
 
 **Implementation Date:** March 15, 2026  
-**Status:** ✅ COMPLETE (Tasks 5.1, 5.2, 5.3)  
-**Next Phase:** Task 5.4 - Payment Integration (VNPAY/MoMo)
-
+**Status:** ✅ COMPLETE (Tasks 5.1, 5.2, 5.3, 5.4-VNPAY)  
+**Next Phase:** Optional - mở rộng thêm MoMo payment gateway

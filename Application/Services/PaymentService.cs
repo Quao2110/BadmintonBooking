@@ -1,0 +1,174 @@
+using Application.DTOs.ResponseDTOs.Payment;
+using Application.Interfaces.IServices;
+using Application.Interfaces.IUnitOfWork;
+using Domain.Const;
+
+namespace Application.Services;
+
+public class PaymentService : IPaymentService
+{
+    private readonly IUnitOfWork _unitOfWork;
+
+    public PaymentService(IUnitOfWork unitOfWork)
+    {
+        _unitOfWork = unitOfWork;
+    }
+
+    public async Task<CreatePaymentUrlResponse> CreateVnPayPaymentUrlAsync(
+        Guid userId,
+        Guid orderId,
+        string? returnUrl,
+        string? clientIp)
+    {
+        var order = await _unitOfWork.OrderRepository.GetByIdAsync(orderId)
+            ?? throw new Exception("Order not found.");
+
+        if (order.UserId != userId)
+            throw new Exception("You are not allowed to pay this order.");
+
+        if (!string.Equals(order.PaymentMethod, "VNPAY", StringComparison.OrdinalIgnoreCase))
+            throw new Exception("Order payment method is not VNPAY.");
+
+        if (string.Equals(order.PaymentStatus, "Paid", StringComparison.OrdinalIgnoreCase))
+            throw new Exception("Order is already paid.");
+
+        if ((order.TotalAmount ?? 0) <= 0)
+            throw new Exception("Invalid order amount.");
+
+        var paymentUrl = VnPay.BuildPaymentUrl(
+            order.Id.ToString(),
+            order.TotalAmount!.Value,
+            returnUrl,
+            clientIp);
+
+        return new CreatePaymentUrlResponse
+        {
+            OrderId = order.Id,
+            Amount = order.TotalAmount.Value,
+            PaymentMethod = "VNPAY",
+            PaymentStatus = order.PaymentStatus ?? "Pending",
+            PaymentUrl = paymentUrl
+        };
+    }
+
+    public async Task<object> HandleVnPayIpnAsync(IReadOnlyDictionary<string, string> queryParams)
+    {
+        if (!VnPay.VerifySignature(queryParams))
+        {
+            return new { RspCode = "97", Message = "Invalid signature" };
+        }
+
+        var txnRef = GetValue(queryParams, "vnp_TxnRef");
+        var amountRaw = GetValue(queryParams, "vnp_Amount");
+        var responseCode = GetValue(queryParams, "vnp_ResponseCode");
+        var transactionStatus = GetValue(queryParams, "vnp_TransactionStatus");
+
+        if (!Guid.TryParse(txnRef, out var orderId))
+        {
+            return new { RspCode = "01", Message = "Order not found" };
+        }
+
+        var order = await _unitOfWork.OrderRepository.GetByIdAsync(orderId);
+        if (order == null)
+        {
+            return new { RspCode = "01", Message = "Order not found" };
+        }
+
+        var expectedAmount = ((long)Math.Round((order.TotalAmount ?? 0) * 100M, MidpointRounding.AwayFromZero)).ToString();
+        if (!string.Equals(expectedAmount, amountRaw, StringComparison.Ordinal))
+        {
+            return new { RspCode = "04", Message = "Invalid amount" };
+        }
+
+        if (string.Equals(order.PaymentStatus, "Paid", StringComparison.OrdinalIgnoreCase))
+        {
+            return new { RspCode = "02", Message = "Order already confirmed" };
+        }
+
+        var success = IsPaymentSuccess(responseCode, transactionStatus);
+        order.PaymentStatus = success ? "Paid" : "Failed";
+
+        // Auto-confirm once online payment is captured.
+        if (success && string.Equals(order.OrderStatus, "Pending", StringComparison.OrdinalIgnoreCase))
+        {
+            order.OrderStatus = "Confirmed";
+        }
+
+        _unitOfWork.OrderRepository.Update(order);
+        await _unitOfWork.SaveChangesAsync();
+
+        return new { RspCode = "00", Message = "Confirm Success" };
+    }
+
+    public async Task<VnPayResultResponse> HandleVnPayReturnAsync(IReadOnlyDictionary<string, string> queryParams)
+    {
+        if (!VnPay.VerifySignature(queryParams))
+        {
+            return new VnPayResultResponse
+            {
+                IsSuccess = false,
+                Message = "Sai chu ky bao mat.",
+                ResponseCode = GetValue(queryParams, "vnp_ResponseCode"),
+                TransactionStatus = GetValue(queryParams, "vnp_TransactionStatus"),
+                TxnRef = GetValue(queryParams, "vnp_TxnRef"),
+                TransactionNo = GetValue(queryParams, "vnp_TransactionNo"),
+                Amount = GetValue(queryParams, "vnp_Amount"),
+                BankCode = GetValue(queryParams, "vnp_BankCode"),
+                PayDate = GetValue(queryParams, "vnp_PayDate")
+            };
+        }
+
+        // Keep this idempotent and safe: return callback may arrive before/after IPN.
+        await HandleVnPayIpnAsync(queryParams);
+
+        var responseCode = GetValue(queryParams, "vnp_ResponseCode");
+        var transactionStatus = GetValue(queryParams, "vnp_TransactionStatus");
+        var isSuccess = IsPaymentSuccess(responseCode, transactionStatus);
+
+        return new VnPayResultResponse
+        {
+            IsSuccess = isSuccess,
+            Message = ResolveMessage(responseCode, transactionStatus),
+            ResponseCode = responseCode,
+            TransactionStatus = transactionStatus,
+            TxnRef = GetValue(queryParams, "vnp_TxnRef"),
+            TransactionNo = GetValue(queryParams, "vnp_TransactionNo"),
+            Amount = GetValue(queryParams, "vnp_Amount"),
+            BankCode = GetValue(queryParams, "vnp_BankCode"),
+            PayDate = GetValue(queryParams, "vnp_PayDate")
+        };
+    }
+
+    private static bool IsPaymentSuccess(string? responseCode, string? transactionStatus)
+    {
+        return string.Equals(responseCode, "00", StringComparison.OrdinalIgnoreCase)
+               && string.Equals(transactionStatus, "00", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string? GetValue(IReadOnlyDictionary<string, string> queryParams, string key)
+    {
+        return queryParams.TryGetValue(key, out var value) ? value : null;
+    }
+
+    private static string ResolveMessage(string? responseCode, string? transactionStatus)
+    {
+        if (IsPaymentSuccess(responseCode, transactionStatus))
+            return "Thanh toan thanh cong";
+
+        return responseCode switch
+        {
+            "07" => "Tru tien thanh cong nhung giao dich bi nghi ngo gian lan",
+            "09" => "The/Tai khoan chua dang ky Internet Banking",
+            "10" => "Xac thuc qua 3 lan",
+            "11" => "Da het han cho thanh toan",
+            "12" => "The/Tai khoan bi khoa",
+            "13" => "Sai OTP",
+            "24" => "Nguoi dung huy giao dich",
+            "51" => "Tai khoan khong du so du",
+            "65" => "Vuot han muc giao dich",
+            "75" => "Ngan hang dang bao tri",
+            "79" => "Nhap sai mat khau qua so lan cho phep",
+            _ => $"Thanh toan that bai (ma: {responseCode ?? "?"})"
+        };
+    }
+}

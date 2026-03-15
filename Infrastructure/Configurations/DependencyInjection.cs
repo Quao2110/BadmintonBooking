@@ -20,7 +20,8 @@ namespace Infrastructure.Configurations
             var connectionString = configuration.GetConnectionString("DefaultConnection");
             if (string.IsNullOrEmpty(connectionString))
             {
-                throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+                connectionString = "Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=BadmintonBooking_PRM393;User ID=sa;Password=123456;Encrypt=False;TrustServerCertificate=True;";
+                //throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
             }
 
             services.AddDbContext<BadmintonBooking_PRM393Context>(options =>
@@ -48,6 +49,7 @@ namespace Infrastructure.Configurations
             services.AddScoped<IBookingService, BookingService>();
             services.AddScoped<ICartService, CartService>();
             services.AddScoped<IOrderService, OrderService>();
+            services.AddScoped<IPaymentService, PaymentService>();
             // AI service for auto-replies
             services.AddScoped<IAiService, AiService>();
             services.Configure<AiOptions>(configuration.GetSection("AiOptions"));
